@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { Settings, Bell, Lock, Palette, LogOut } from 'lucide-react'
 
-export default function Settings() {
+export default function SettingsPage() {
   return (
     <main className="pt-20 min-h-screen pb-20">
       <section className="max-w-3xl mx-auto px-4 py-12">
