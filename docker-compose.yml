@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aurevion-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+      - STABLE_DIFFUSION_API_KEY=${STABLE_DIFFUSION_API_KEY}
+      - DATABASE_URL=sqlite:///./aurevion.db
+      - DEBUG=True
+    volumes:
+      - ./backend:/app
+    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: aurevion-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000/api
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev
+
+  db:
+    image: postgres:15
+    container_name: aurevion-db
+    environment:
+      POSTGRES_USER: aurevion
+      POSTGRES_PASSWORD: aurevion-dev
+      POSTGRES_DB: aurevion
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+
+networks:
+  default:
+    name: aurevion-network

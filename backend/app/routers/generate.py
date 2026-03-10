@@ -1,0 +1,128 @@
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from typing import List, Optional
+import os
+import google.generativeai as genai
+
+router = APIRouter()
+
+# Configure Google Gemini API
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+
+# Pydantic models
+class BrandNameRequest(BaseModel):
+    description: str
+    keywords: Optional[str] = None
+    tone: str = "professional"
+
+class BrandNameResponse(BaseModel):
+    names: List[dict]
+
+class LogoRequest(BaseModel):
+    brand_name: str
+    style: str = "modern"
+    color_preference: str = "multicolor"
+
+class LogoResponse(BaseModel):
+    logos: List[dict]
+
+class ContentRequest(BaseModel):
+    content_type: str
+    brand_name: str
+    context: Optional[str] = None
+
+class ContentResponse(BaseModel):
+    content: List[dict]
+
+# Brand Name Generation
+@router.post("/brand-names", response_model=BrandNameResponse)
+async def generate_brand_names(request: BrandNameRequest):
+    """Generate creative brand names using Google Gemini"""
+    try:
+        prompt = f"""Generate 10 creative and unique brand names for the following:
+        
+Business Description: {request.description}
+Keywords: {request.keywords or 'Not specified'}
+Brand Tone: {request.tone}
+
+Requirements:
+- Names should be memorable and easy to pronounce
+- Should reflect the business nature
+- Mix of different styles (compound words, invented words, acronyms)
+- Each name should be unique and not already trademarked
+
+Return as a JSON array with format: [{{"name": "BrandName", "description": "why this name works"}}]
+"""
+        
+        model = genai.GenerativeModel('gemini-pro')
+        response = model.generate_content(prompt)
+        
+        # Parse response (mock data for demo)
+        mock_names = [
+            {"name": "TechFlow", "description": "Combines technology with smooth flow"},
+            {"name": "CloudVise", "description": "Professional cloud-based solution"},
+            {"name": "DataSync", "description": "Data synchronization focus"},
+            {"name": "QuantumLeap", "description": "Innovation and advancement"},
+            {"name": "NexusAI", "description": "Connected AI intelligence"},
+            {"name": "VelocityHub", "description": "Speed and central connection"},
+            {"name": "PrismData", "description": "Clear insights into data"},
+            {"name": "ApexFlow", "description": "Top-tier workflow solution"},
+            {"name": "EchoSync", "description": "Responsive and synchronized"},
+            {"name": "VortexLabs", "description": "Cutting-edge innovation center"}
+        ]
+        
+        return BrandNameResponse(names=mock_names)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Logo Generation
+@router.post("/logo", response_model=LogoResponse)
+async def generate_logo(request: LogoRequest):
+    """Generate AI logos using Stable Diffusion"""
+    try:
+        # Mock response for demo - in production, call Stable Diffusion API
+        mock_logos = [
+            {"url": "https://via.placeholder.com/300x300?text=Logo+1", "style": request.style},
+            {"url": "https://via.placeholder.com/300x300?text=Logo+2", "style": request.style},
+        ]
+        
+        return LogoResponse(logos=mock_logos)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Content Generation
+@router.post("/content", response_model=ContentResponse)
+async def generate_content(request: ContentRequest):
+    """Generate marketing content using Google Gemini"""
+    try:
+        content_type_prompts = {
+            "product_description": "Create a compelling 2-3 sentence product description",
+            "tagline": "Create a catchy and memorable brand tagline (5-10 words)",
+            "social_media": "Create an engaging social media caption (50-100 characters)",
+            "email_subject": "Create 5 compelling email subject lines",
+            "ad_copy": "Create an engaging ad copy (2-3 sentences)"
+        }
+        
+        prompt = f"""{content_type_prompts.get(request.content_type, "Generate marketing content")}
+        
+Brand Name: {request.brand_name}
+Context: {request.context or 'General business context'}
+
+Make it engaging, professional, and aligned with the brand tone.
+"""
+        
+        model = genai.GenerativeModel('gemini-pro')
+        # response = model.generate_content(prompt)
+        
+        # Mock response for demo
+        mock_content = [
+            {
+                "text": f"Generated {request.content_type.replace('_', ' ')} for {request.brand_name}"
+            }
+        ]
+        
+        return ContentResponse(content=mock_content)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
