@@ -7,7 +7,34 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 second timeout
 })
+
+// Add response interceptor for better error handling
+apiClient.interceptors.response.use(
+  (response) => {
+    console.log('API Response:', response.config.url, response.status)
+    return response
+  },
+  (error) => {
+    console.error('API Error:', error.config?.url, error.message)
+    if (error.response) {
+      // Server responded with error status
+      console.error('Response status:', error.response.status)
+      console.error('Response data:', error.response.data)
+      const message = error.response.data?.detail || error.response.data?.message || error.message
+      throw new Error(message)
+    } else if (error.request) {
+      // Network error
+      console.error('Network error - no response received')
+      throw new Error('Network error - please check your connection and try again')
+    } else {
+      // Other error
+      console.error('Request setup error:', error.message)
+      throw new Error(error.message || 'An unexpected error occurred')
+    }
+  }
+)
 
 // Brand Name Generation
 export const generateBrandNames = async (description, keywords, tone) => {

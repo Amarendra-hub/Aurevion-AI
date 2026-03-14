@@ -30,10 +30,10 @@ export function AuthProvider({ children }) {
       localStorage.setItem('authUser', JSON.stringify(data.user))
       setToken(data.access_token)
       setUser(data.user)
-      return { success: true }
+      return data.user
     } catch (err) {
       setError(err.message || 'Signup failed')
-      return { success: false, error: err.message || 'Signup failed' }
+      throw new Error(err.message || 'Signup failed')
     }
   }, [])
 
