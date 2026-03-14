@@ -1,11 +1,15 @@
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { Menu, X, Sparkles } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Menu, X } from 'lucide-react'
 import { motion } from 'framer-motion'
+import Logo from './Logo'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
+  const { isAuthenticated, user, logout } = useAuth()
 
   const isPublic = location.pathname === '/' || location.pathname === '/about' || location.pathname === '/contact'
 
@@ -26,6 +30,12 @@ export default function Navbar() {
 
   const links = isPublic ? publicLinks : dashboardLinks
 
+  const handleLogout = () => {
+    logout()
+    navigate('/')
+    setIsOpen(false)
+  }
+
   return (
     <motion.nav
       initial={{ y: -100, opacity: 0 }}
@@ -38,10 +48,10 @@ export default function Navbar() {
           {/* Logo */}
           <Link
             to="/"
-            className="flex items-center gap-2 text-2xl font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent hover:scale-105 transition-transform"
+            className="flex items-center gap-2 text-2xl font-bold hover:scale-105 transition-transform"
           >
-            <Sparkles className="w-8 h-8 text-indigo-500" />
-            <span>Aurevion</span>
+            <Logo className="w-10 h-10" />
+            <span className="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">Aurevion</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -67,15 +77,51 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* CTA Button */}
-          {isPublic && (
-            <Link
-              to="/dashboard"
-              className="hidden md:block btn-primary"
-            >
-              Get Started
-            </Link>
-          )}
+          {/* CTA / Auth Buttons */}
+          <div className="hidden md:flex gap-3">
+            {isPublic ? (
+              <>
+                {!isAuthenticated ? (
+                  <>
+                    <Link
+                      to="/login"
+                      className="px-4 py-2 text-slate-300 hover:text-white transition"
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      to="/signup"
+                      className="btn-primary"
+                    >
+                      Get Started
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-slate-400 py-2">Welcome, {user?.username}!</span>
+                    <Link
+                      to="/dashboard"
+                      className="btn-primary"
+                    >
+                      Dashboard
+                    </Link>
+                  </>
+                )}
+              </>
+            ) : (
+              isAuthenticated && (
+                <>
+                  <span className="text-slate-400 py-2">Welcome, {user?.username}!</span>
+                  <button
+                    onClick={handleLogout}
+                    className="px-4 py-2 text-slate-300 hover:text-red-400 transition"
+                  >
+                    Logout
+                  </button>
+                </>
+              )
+            )}
+          </div>
 
           {/* Mobile Menu Button */}
           <button
@@ -109,13 +155,48 @@ export default function Navbar() {
               </Link>
             ))}
             {isPublic && (
-              <Link
-                to="/dashboard"
-                onClick={() => setIsOpen(false)}
-                className="block mt-2 btn-primary text-center"
-              >
-                Get Started
-              </Link>
+              <>
+                {!isAuthenticated ? (
+                  <>
+                    <Link
+                      to="/login"
+                      onClick={() => setIsOpen(false)}
+                      className="block py-2 px-4 rounded transition-colors text-slate-300 hover:bg-slate-700"
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      to="/signup"
+                      onClick={() => setIsOpen(false)}
+                      className="block mt-2 btn-primary text-center"
+                    >
+                      Get Started
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <span className="block py-2 px-4 text-slate-400">Welcome, {user?.username}!</span>
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setIsOpen(false)}
+                      className="block btn-primary text-center"
+                    >
+                      Dashboard
+                    </Link>
+                  </>
+                )}
+              </>
+            )}
+            {!isPublic && isAuthenticated && (
+              <>
+                <span className="block py-2 px-4 text-slate-400">Welcome, {user?.username}!</span>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left py-2 px-4 rounded transition-colors text-slate-300 hover:bg-slate-700 hover:text-red-400"
+                >
+                  Logout
+                </button>
+              </>
             )}
           </motion.div>
         )}
