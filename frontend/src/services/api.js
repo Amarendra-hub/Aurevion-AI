@@ -1,6 +1,16 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
+// Determine API base URL based on environment
+const getApiBaseUrl = () => {
+  // Production: Use environment variable or default to your deployed backend
+  if (import.meta.env.PROD) {
+    return import.meta.env.VITE_API_URL || 'https://your-backend-api-url.com/api'
+  }
+  // Development: Use Vite proxy
+  return import.meta.env.VITE_API_URL || '/api'
+}
+
+const API_BASE_URL = getApiBaseUrl()
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
