@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = '/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -56,6 +56,39 @@ export const getDashboardStats = async () => {
 // Get Recent Activity
 export const getRecentActivity = async () => {
   const response = await apiClient.get('/dashboard/activity')
+  return response.data
+}
+
+// Authentication APIs
+export const signup = async (email, username, password, fullName) => {
+  const response = await apiClient.post('/auth/signup', {
+    email,
+    username,
+    password,
+    full_name: fullName,
+  })
+  return response.data
+}
+
+export const login = async (email, password) => {
+  const response = await apiClient.post('/auth/login', {
+    email,
+    password,
+  })
+  return response.data
+}
+
+export const verifyToken = async (token) => {
+  const response = await apiClient.post('/auth/verify-token', { token })
+  return response.data
+}
+
+export const getCurrentUser = async (token) => {
+  const response = await apiClient.get('/auth/me', {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  })
   return response.data
 }
 

@@ -1,4 +1,5 @@
 import { createContext, useState, useContext, useCallback, useEffect } from 'react'
+import { signup as apiSignup, login as apiLogin, verifyToken as apiVerifyToken, getCurrentUser as apiGetCurrentUser } from '../services/api'
 
 const AuthContext = createContext(null)
 
@@ -24,65 +25,29 @@ export function AuthProvider({ children }) {
   const signup = useCallback(async (email, username, password, fullName) => {
     setError(null)
     try {
-      const response = await fetch('http://localhost:8000/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          username,
-          password,
-          full_name: fullName,
-        }),
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.detail || 'Signup failed')
-      }
-
-      const data = await response.json()
+      const data = await apiSignup(email, username, password, fullName)
       localStorage.setItem('authToken', data.access_token)
       localStorage.setItem('authUser', JSON.stringify(data.user))
       setToken(data.access_token)
       setUser(data.user)
-      
-      return data.user
+      return { success: true }
     } catch (err) {
-      setError(err.message)
-      throw err
+      setError(err.message || 'Signup failed')
+      return { success: false, error: err.message || 'Signup failed' }
     }
   }, [])
 
   const login = useCallback(async (email, password) => {
     setError(null)
     try {
-      const response = await fetch('http://localhost:8000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.detail || 'Login failed')
-      }
-
-      const data = await response.json()
+      const data = await apiLogin(email, password)
       localStorage.setItem('authToken', data.access_token)
       localStorage.setItem('authUser', JSON.stringify(data.user))
       setToken(data.access_token)
       setUser(data.user)
-      
       return data.user
     } catch (err) {
-      setError(err.message)
+      setError(err.message || 'Login failed')
       throw err
     }
   }, [])
