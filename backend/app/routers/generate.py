@@ -2,14 +2,25 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 import os
+import warnings
+
+# Suppress the deprecation warning
+warnings.filterwarnings("ignore", message=".*google.generativeai.*deprecated.*", category=FutureWarning)
+
 import google.generativeai as genai
 
 router = APIRouter()
 
-# Configure Google Gemini API
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
+# Configure Google Gemini API lazily
+_gemini_configured = False
+
+def configure_gemini():
+    global _gemini_configured
+    if not _gemini_configured:
+        GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+        if GEMINI_API_KEY:
+            genai.configure(api_key=GEMINI_API_KEY)  # type: ignore
+        _gemini_configured = True
 
 # Pydantic models
 class BrandNameRequest(BaseModel):
@@ -56,7 +67,8 @@ Requirements:
 Return as a JSON array with format: [{{"name": "BrandName", "description": "why this name works"}}]
 """
         
-        model = genai.GenerativeModel('gemini-pro')
+        configure_gemini()
+        model = genai.GenerativeModel('gemini-pro')  # type: ignore
         response = model.generate_content(prompt)
         
         # Parse response (mock data for demo)
@@ -113,7 +125,8 @@ Context: {request.context or 'General business context'}
 Make it engaging, professional, and aligned with the brand tone.
 """
         
-        model = genai.GenerativeModel('gemini-pro')
+        configure_gemini()
+        model = genai.GenerativeModel('gemini-pro')  # type: ignore
         # response = model.generate_content(prompt)
         
         # Mock response for demo

@@ -1,16 +1,22 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
-from transformers import pipeline
 
 router = APIRouter()
 
-# Initialize sentiment analysis pipeline
-try:
-    sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")
-except Exception as e:
-    print(f"Warning: Could not load sentiment model: {e}")
-    sentiment_analyzer = None
+# Initialize sentiment analysis pipeline lazily
+sentiment_analyzer = None
+
+def get_sentiment_analyzer():
+    global sentiment_analyzer
+    if sentiment_analyzer is None:
+        try:
+            from transformers import pipeline
+            sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")  # type: ignore
+        except Exception as e:
+            print(f"Warning: Could not load sentiment model: {e}")
+            sentiment_analyzer = None
+    return sentiment_analyzer
 
 # Pydantic models
 class SentimentRequest(BaseModel):
@@ -36,10 +42,12 @@ async def analyze_sentiment(request: SentimentRequest):
         total_confidence = 0
         sentiment_count = 0
         
-        if sentiment_analyzer:
+        analyzer = get_sentiment_analyzer()
+        
+        if analyzer:
             for sentence in sentences:
                 if sentence.strip():
-                    result = sentiment_analyzer(sentence.strip()[:512])
+                    result = analyzer(sentence.strip()[:512])
                     label = result[0]['label']
                     confidence = result[0]['score']
                     
