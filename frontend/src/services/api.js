@@ -7,7 +7,7 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000, // 10 second timeout
+  timeout: 5000, // 5 second timeout
 })
 
 // Add response interceptor for better error handling
@@ -17,7 +17,18 @@ apiClient.interceptors.response.use(
     return response
   },
   (error) => {
-    console.error('API Error:', error.config?.url, error.message)
+    console.error('API Error Details:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      timeout: error.config?.timeout,
+      message: error.message,
+      code: error.code,
+      isNetworkError: !!error.request,
+      isServerError: !!error.response,
+      responseStatus: error.response?.status,
+      responseData: error.response?.data
+    })
+
     if (error.response) {
       // Server responded with error status
       console.error('Response status:', error.response.status)
