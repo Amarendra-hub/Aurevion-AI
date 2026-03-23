@@ -68,7 +68,7 @@ Return as a JSON array with format: [{{"name": "BrandName", "description": "why 
 """
         
         configure_gemini()
-        model = genai.GenerativeModel('gemini-pro')  # type: ignore
+        model = genai.GenerativeModel('gemini-1.5-flash')  # type: ignore
         response = model.generate_content(prompt)
         
         # Parse response (mock data for demo)
@@ -126,7 +126,7 @@ Make it engaging, professional, and aligned with the brand tone.
 """
         
         configure_gemini()
-        model = genai.GenerativeModel('gemini-pro')  # type: ignore
+        model = genai.GenerativeModel('gemini-1.5-flash')  # type: ignore
         # response = model.generate_content(prompt)
         
         # Mock response for demo
