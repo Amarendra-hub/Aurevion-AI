@@ -5,7 +5,7 @@ const getApiBaseUrl = () => {
   // Production: Use environment variable
   if (import.meta.env.PROD) {
     const apiUrl = import.meta.env.VITE_API_URL
-    if (!apiUrl || apiUrl === 'https://your-backend-api-url.com/api') {
+    if (!apiUrl || apiUrl === 'https://your-backend-url.com/api') {
       console.error(
         'CRITICAL: VITE_API_URL environment variable is not properly configured. ' +
         'Please set VITE_API_URL in your Vercel environment variables. ' +
