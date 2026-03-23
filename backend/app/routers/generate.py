@@ -19,7 +19,7 @@ def configure_gemini():
     if not _gemini_configured:
         GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
         if GEMINI_API_KEY:
-            genai.configure(api_key=GEMINI_API_KEY)  # type: ignore
+            genai.configure(api_key=os.getenv("GEMINI_API_KEY"))  # type: ignore
         _gemini_configured = True
 
 # Pydantic models
