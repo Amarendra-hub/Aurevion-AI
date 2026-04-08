@@ -148,10 +148,21 @@ Return as a JSON array with format: [{{"name": "BrandName", "description": "why 
 async def generate_logo(request: LogoRequest):
     """Generate AI logos using Stable Diffusion"""
     try:
-        # Mock response for demo - in production, call Stable Diffusion API
+        # Mock response for demo - in production, integrate with Stable Diffusion API
+        # Set STABLE_DIFFUSION_API_KEY environment variable to enable real logo generation
         mock_logos = [
-            {"url": "https://via.placeholder.com/300x300?text=Logo+1", "style": request.style},
-            {"url": "https://via.placeholder.com/300x300?text=Logo+2", "style": request.style},
+            {
+                "description": f"Modern {request.style} logo for '{request.brand_name}' with {request.color_preference} color scheme",
+                "style": request.style,
+                "colors": request.color_preference,
+                "note": "Real logo generation requires Stable Diffusion API key"
+            },
+            {
+                "description": f"Contemporary {request.style} design featuring '{request.brand_name}' with {request.color_preference} palette",
+                "style": request.style,
+                "colors": request.color_preference,
+                "note": "Real logo generation requires Stable Diffusion API key"
+            },
         ]
         
         return LogoResponse(logos=mock_logos)

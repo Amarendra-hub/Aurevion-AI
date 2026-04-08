@@ -18,7 +18,10 @@ export default function LogoGenerator() {
 
   const handleGenerate = async (e) => {
     e.preventDefault()
-    mutation.mutate(brandName, style, colorPreference)
+    if (!brandName.trim()) {
+      return
+    }
+    mutation.mutate({ brandName, style, colorPreference })
   }
 
   return (
@@ -130,12 +133,19 @@ export default function LogoGenerator() {
                       className="glass p-4 rounded-lg border border-slate-700 hover:border-purple-500 transition-all"
                     >
                       <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg p-6 mb-4 flex items-center justify-center h-48">
-                        <img
-                          src={logo.url || 'https://via.placeholder.com/300x300?text=Logo'}
-                          alt={`Logo ${index}`}
-                          className="max-w-full max-h-full"
-                        />
+                        <div className="text-center">
+                          <Palette className="w-16 h-16 text-purple-400 mx-auto mb-3" />
+                          <p className="text-slate-400 text-sm">Logo Preview</p>
+                        </div>
                       </div>
+                      <p className="text-slate-300 text-sm mb-3 min-h-12">
+                        {logo.description}
+                      </p>
+                      {logo.note && (
+                        <p className="text-xs text-slate-500 mb-3 italic">
+                          {logo.note}
+                        </p>
+                      )}
                       <button className="btn-secondary w-full flex items-center justify-center gap-2">
                         <Download size={18} />
                         Download

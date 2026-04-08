@@ -78,7 +78,7 @@ export const generateBrandNames = async ({ description, keywords, tone }) => {
 }
 
 // Logo Generation
-export const generateLogo = async (brandName, style, colorPreference) => {
+export const generateLogo = async ({ brandName, style, colorPreference }) => {
   const response = await apiClient.post('/generate/logo', {
     brand_name: brandName,
     style,
