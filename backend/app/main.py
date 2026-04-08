@@ -25,6 +25,15 @@ app.add_middleware(
 # Import routers
 from app.routers import generate, analyze, auth
 
+# Startup event to initialize Gemini model
+@app.on_event("startup")
+async def startup_event():
+    """Initialize Gemini model on startup"""
+    try:
+        generate.discover_gemini_model()
+    except Exception as e:
+        print(f"[Startup] Warning: Failed to initialize Gemini: {e}")
+
 # Include routers
 app.include_router(auth.router)
 app.include_router(generate.router, prefix="/api/generate", tags=["generate"])

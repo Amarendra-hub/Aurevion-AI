@@ -13,6 +13,7 @@ router = APIRouter()
 
 # Configure Google Gemini API lazily
 _gemini_configured = False
+_valid_model_name = None
 
 def configure_gemini():
     global _gemini_configured
@@ -22,6 +23,36 @@ def configure_gemini():
             raise HTTPException(status_code=500, detail="Gemini API key not configured")
         genai.configure(api_key=GEMINI_API_KEY)  # type: ignore
         _gemini_configured = True
+
+
+def discover_gemini_model():
+    """Discover and cache a valid Gemini model name. Call once at startup."""
+    global _valid_model_name
+    if _valid_model_name:
+        return _valid_model_name
+    
+    try:
+        configure_gemini()
+        models = genai.list_models()
+        for m in models:
+            name = getattr(m, 'name', None)
+            methods = getattr(m, 'supported_generation_methods', [])
+            if name and ('generateContent' in methods or 'generate_text' in methods):
+                _valid_model_name = name
+                print(f"[Gemini] Using model: {_valid_model_name}")
+                return _valid_model_name
+        # No suitable model found
+        raise Exception("No Gemini model with generateContent support found")
+    except Exception as e:
+        print(f"[Gemini] Error discovering model: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to discover Gemini model: {str(e)}")
+
+
+def get_gemini_model():
+    """Get the cached Gemini model name. Must be called after startup."""
+    if not _valid_model_name:
+        raise HTTPException(status_code=500, detail="Gemini model not initialized. Call discover_gemini_model at startup.")
+    return _valid_model_name
 
 def extract_json_from_text(text):
     """Extract JSON from text that may contain markdown code blocks"""
@@ -82,7 +113,7 @@ Return as a JSON array with format: [{{"name": "BrandName", "description": "why 
 """
         
         configure_gemini()
-        model = genai.GenerativeModel('models/gemini-pro')  # type: ignore
+        model = genai.GenerativeModel(get_gemini_model())  # type: ignore
         response = model.generate_content(prompt)
         
         # Parse the actual response
@@ -147,7 +178,7 @@ Make it engaging, professional, and aligned with the brand tone.
 """
         
         configure_gemini()
-        model = genai.GenerativeModel('models/gemini-pro')  # type: ignore
+        model = genai.GenerativeModel(get_gemini_model())  # type: ignore
         response = model.generate_content(prompt)
         
         # Use the actual response
