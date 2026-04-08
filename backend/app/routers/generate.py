@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, constr
 from typing import List, Optional
 import os
 import warnings
@@ -38,7 +38,7 @@ def extract_json_from_text(text):
 
 # Pydantic models
 class BrandNameRequest(BaseModel):
-    description: str
+    description: constr(min_length=1)
     keywords: Optional[str] = None
     tone: str = "professional"
 
@@ -55,7 +55,7 @@ class LogoResponse(BaseModel):
 
 class ContentRequest(BaseModel):
     content_type: str
-    brand_name: str
+    brand_name: constr(min_length=1)
     context: Optional[str] = None
 
 class ContentResponse(BaseModel):
@@ -82,7 +82,7 @@ Return as a JSON array with format: [{{"name": "BrandName", "description": "why 
 """
         
         configure_gemini()
-        model = genai.GenerativeModel('gemini-1.0-pro')  # type: ignore
+        model = genai.GenerativeModel('gemini-pro')  # type: ignore
         response = model.generate_content(prompt)
         
         # Parse the actual response
@@ -147,7 +147,7 @@ Make it engaging, professional, and aligned with the brand tone.
 """
         
         configure_gemini()
-        model = genai.GenerativeModel('gemini-1.0-pro')  # type: ignore
+        model = genai.GenerativeModel('gemini-pro')  # type: ignore
         response = model.generate_content(prompt)
         
         # Use the actual response
