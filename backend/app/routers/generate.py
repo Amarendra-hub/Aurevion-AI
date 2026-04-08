@@ -71,21 +71,26 @@ Return as a JSON array with format: [{{"name": "BrandName", "description": "why 
         model = genai.GenerativeModel('gemini-1.5-flash')  # type: ignore
         response = model.generate_content(prompt)
         
-        # Parse response (mock data for demo)
-        mock_names = [
-            {"name": "TechFlow", "description": "Combines technology with smooth flow"},
-            {"name": "CloudVise", "description": "Professional cloud-based solution"},
-            {"name": "DataSync", "description": "Data synchronization focus"},
-            {"name": "QuantumLeap", "description": "Innovation and advancement"},
-            {"name": "NexusAI", "description": "Connected AI intelligence"},
-            {"name": "VelocityHub", "description": "Speed and central connection"},
-            {"name": "PrismData", "description": "Clear insights into data"},
-            {"name": "ApexFlow", "description": "Top-tier workflow solution"},
-            {"name": "EchoSync", "description": "Responsive and synchronized"},
-            {"name": "VortexLabs", "description": "Cutting-edge innovation center"}
-        ]
+        # Parse the actual response
+        import json
+        try:
+            names = json.loads(response.text.strip())
+        except (json.JSONDecodeError, AttributeError):
+            # Fallback to mock data if parsing fails
+            names = [
+                {"name": "TechFlow", "description": "Combines technology with smooth flow"},
+                {"name": "CloudVise", "description": "Professional cloud-based solution"},
+                {"name": "DataSync", "description": "Data synchronization focus"},
+                {"name": "QuantumLeap", "description": "Innovation and advancement"},
+                {"name": "NexusAI", "description": "Connected AI intelligence"},
+                {"name": "VelocityHub", "description": "Speed and central connection"},
+                {"name": "PrismData", "description": "Clear insights into data"},
+                {"name": "ApexFlow", "description": "Top-tier workflow solution"},
+                {"name": "EchoSync", "description": "Responsive and synchronized"},
+                {"name": "VortexLabs", "description": "Cutting-edge innovation center"}
+            ]
         
-        return BrandNameResponse(names=mock_names)
+        return BrandNameResponse(names=names)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -127,15 +132,16 @@ Make it engaging, professional, and aligned with the brand tone.
         
         configure_gemini()
         model = genai.GenerativeModel('gemini-1.5-flash')  # type: ignore
-        # response = model.generate_content(prompt)
+        response = model.generate_content(prompt)
         
-        # Mock response for demo
-        mock_content = [
-            {
-                "text": f"Generated {request.content_type.replace('_', ' ')} for {request.brand_name}"
-            }
-        ]
+        # Use the actual response
+        try:
+            generated_content = response.text.strip()
+        except AttributeError:
+            generated_content = f"Generated {request.content_type.replace('_', ' ')} for {request.brand_name}"
         
-        return ContentResponse(content=mock_content)
+        content = [{"text": generated_content}]
+        
+        return ContentResponse(content=content)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
