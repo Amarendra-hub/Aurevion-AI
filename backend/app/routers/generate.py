@@ -31,21 +31,17 @@ def discover_gemini_model():
     if _valid_model_name:
         return _valid_model_name
     
-    try:
-        configure_gemini()
-        models = genai.list_models()
-        for m in models:
-            name = getattr(m, 'name', None)
-            methods = getattr(m, 'supported_generation_methods', [])
-            if name and ('generateContent' in methods or 'generate_text' in methods):
-                _valid_model_name = name
-                print(f"[Gemini] Using model: {_valid_model_name}")
-                return _valid_model_name
-        # No suitable model found
-        raise Exception("No Gemini model with generateContent support found")
-    except Exception as e:
-        print(f"[Gemini] Error discovering model: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to discover Gemini model: {str(e)}")
+    configure_gemini()
+    models = genai.list_models()
+    for m in models:
+        name = getattr(m, 'name', None)
+        methods = getattr(m, 'supported_generation_methods', [])
+        if name and ('generateContent' in methods or 'generate_text' in methods):
+            _valid_model_name = name
+            print(f"[Gemini] Using model: {_valid_model_name}")
+            return _valid_model_name
+    # No suitable model found
+    raise RuntimeError("No Gemini model with generateContent support found")
 
 
 def get_gemini_model():

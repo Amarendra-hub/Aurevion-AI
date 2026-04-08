@@ -29,10 +29,9 @@ from app.routers import generate, analyze, auth
 @app.on_event("startup")
 async def startup_event():
     """Initialize Gemini model on startup"""
-    try:
-        generate.discover_gemini_model()
-    except Exception as e:
-        print(f"[Startup] Warning: Failed to initialize Gemini: {e}")
+    print("[Startup] Initializing Gemini model...")
+    generate.discover_gemini_model()
+    print("[Startup] Gemini model initialized successfully")
 
 # Include routers
 app.include_router(auth.router)
