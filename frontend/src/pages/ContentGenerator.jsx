@@ -19,7 +19,10 @@ export default function ContentGenerator() {
 
   const handleGenerate = async (e) => {
     e.preventDefault()
-    mutation.mutate(contentType, brandName, context)
+    if (!brandName.trim()) {
+      return
+    }
+    mutation.mutate({ contentType, brandName, context })
   }
 
   const copyToClipboard = (text, index) => {

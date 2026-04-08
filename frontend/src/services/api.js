@@ -68,7 +68,7 @@ apiClient.interceptors.response.use(
 )
 
 // Brand Name Generation
-export const generateBrandNames = async (description, keywords, tone) => {
+export const generateBrandNames = async ({ description, keywords, tone }) => {
   const response = await apiClient.post('/generate/brand-names', {
     description,
     keywords,
@@ -88,7 +88,7 @@ export const generateLogo = async (brandName, style, colorPreference) => {
 }
 
 // Content Generation
-export const generateContent = async (contentType, brandName, context) => {
+export const generateContent = async ({ contentType, brandName, context }) => {
   const response = await apiClient.post('/generate/content', {
     content_type: contentType,
     brand_name: brandName,

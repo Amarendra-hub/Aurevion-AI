@@ -19,7 +19,10 @@ export default function BrandNameGenerator() {
 
   const handleGenerate = async (e) => {
     e.preventDefault()
-    mutation.mutate(description, keywords, tone)
+    if (!description.trim()) {
+      return
+    }
+    mutation.mutate({ description, keywords, tone })
   }
 
   const copyToClipboard = (text, index) => {
