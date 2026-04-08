@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, constr
+from pydantic import BaseModel, Field
 from typing import List, Optional
 import os
 import warnings
@@ -38,7 +38,7 @@ def extract_json_from_text(text):
 
 # Pydantic models
 class BrandNameRequest(BaseModel):
-    description: constr(min_length=1)
+    description: str = Field(min_length=1)
     keywords: Optional[str] = None
     tone: str = "professional"
 
@@ -55,7 +55,7 @@ class LogoResponse(BaseModel):
 
 class ContentRequest(BaseModel):
     content_type: str
-    brand_name: constr(min_length=1)
+    brand_name: str = Field(min_length=1)
     context: Optional[str] = None
 
 class ContentResponse(BaseModel):
