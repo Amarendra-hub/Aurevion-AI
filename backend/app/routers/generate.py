@@ -110,7 +110,14 @@ Return as a JSON array with format: [{{"name": "BrandName", "description": "why 
         
         configure_gemini()
         model = genai.GenerativeModel(get_gemini_model())  # type: ignore
-        response = model.generate_content(prompt)
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.GenerationConfig(
+                max_output_tokens=150,
+                temperature=0.8,
+                top_p=0.9,
+            )
+        )
         
         # Parse the actual response
         import json
