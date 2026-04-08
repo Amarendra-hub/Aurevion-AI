@@ -82,7 +82,7 @@ Return as a JSON array with format: [{{"name": "BrandName", "description": "why 
 """
         
         configure_gemini()
-        model = genai.GenerativeModel('gemini-1.5-flash')  # type: ignore
+        model = genai.GenerativeModel('gemini-1.0-pro')  # type: ignore
         response = model.generate_content(prompt)
         
         # Parse the actual response
@@ -129,6 +129,7 @@ async def generate_logo(request: LogoRequest):
 async def generate_content(request: ContentRequest):
     """Generate marketing content using Google Gemini"""
     try:
+        print(f"Content request: {request.dict()}")  # Debug logging
         content_type_prompts = {
             "product_description": "Create a compelling 2-3 sentence product description",
             "tagline": "Create a catchy and memorable brand tagline (5-10 words)",
@@ -146,7 +147,7 @@ Make it engaging, professional, and aligned with the brand tone.
 """
         
         configure_gemini()
-        model = genai.GenerativeModel('gemini-1.5-flash')  # type: ignore
+        model = genai.GenerativeModel('gemini-1.0-pro')  # type: ignore
         response = model.generate_content(prompt)
         
         # Use the actual response
