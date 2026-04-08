@@ -13,7 +13,6 @@ router = APIRouter()
 
 # Configure Google Gemini API lazily
 _gemini_configured = False
-_gemini_model_name = None
 
 def configure_gemini():
     global _gemini_configured
@@ -23,32 +22,6 @@ def configure_gemini():
             raise HTTPException(status_code=500, detail="Gemini API key not configured")
         genai.configure(api_key=GEMINI_API_KEY)  # type: ignore
         _gemini_configured = True
-
-
-def get_supported_gemini_model():
-    global _gemini_model_name
-    if _gemini_model_name:
-        return _gemini_model_name
-
-    default_model = "models/gemini-pro"
-    try:
-        configure_gemini()
-        available_models = genai.list_models()
-        for model in available_models:
-            model_name = getattr(model, "name", None) or getattr(model, "model", None)
-            supported_methods = getattr(model, "supported_generation_methods", [])
-            if not model_name or not supported_methods:
-                continue
-            if "generateContent" in supported_methods or "generate_text" in supported_methods:
-                _gemini_model_name = model_name
-                break
-    except Exception:
-        _gemini_model_name = default_model
-
-    if not _gemini_model_name:
-        _gemini_model_name = default_model
-
-    return _gemini_model_name
 
 def extract_json_from_text(text):
     """Extract JSON from text that may contain markdown code blocks"""
@@ -109,7 +82,7 @@ Return as a JSON array with format: [{{"name": "BrandName", "description": "why 
 """
         
         configure_gemini()
-        model = genai.GenerativeModel(get_supported_gemini_model())  # type: ignore
+        model = genai.GenerativeModel('models/gemini-pro')  # type: ignore
         response = model.generate_content(prompt)
         
         # Parse the actual response
@@ -174,7 +147,7 @@ Make it engaging, professional, and aligned with the brand tone.
 """
         
         configure_gemini()
-        model = genai.GenerativeModel(get_supported_gemini_model())  # type: ignore
+        model = genai.GenerativeModel('models/gemini-pro')  # type: ignore
         response = model.generate_content(prompt)
         
         # Use the actual response
