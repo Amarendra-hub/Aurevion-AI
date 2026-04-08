@@ -18,9 +18,23 @@ def configure_gemini():
     global _gemini_configured
     if not _gemini_configured:
         GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-        if GEMINI_API_KEY:
-            genai.configure(api_key=os.getenv("GEMINI_API_KEY"))  # type: ignore
+        if not GEMINI_API_KEY:
+            raise HTTPException(status_code=500, detail="Gemini API key not configured")
+        genai.configure(api_key=GEMINI_API_KEY)  # type: ignore
         _gemini_configured = True
+
+def extract_json_from_text(text):
+    """Extract JSON from text that may contain markdown code blocks"""
+    import re
+    # Look for JSON in code blocks
+    json_match = re.search(r'```(?:json)?\s*(\[.*?\])\s*```', text, re.DOTALL)
+    if json_match:
+        return json_match.group(1)
+    # Look for JSON array directly
+    array_match = re.search(r'\[.*\]', text, re.DOTALL)
+    if array_match:
+        return array_match.group(0)
+    return text
 
 # Pydantic models
 class BrandNameRequest(BaseModel):
@@ -74,7 +88,8 @@ Return as a JSON array with format: [{{"name": "BrandName", "description": "why 
         # Parse the actual response
         import json
         try:
-            names = json.loads(response.text.strip())
+            json_text = extract_json_from_text(response.text.strip())
+            names = json.loads(json_text)
         except (json.JSONDecodeError, AttributeError):
             # Fallback to mock data if parsing fails
             names = [
