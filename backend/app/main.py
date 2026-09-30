@@ -5,6 +5,14 @@ import os
 
 # Load environment variables
 load_dotenv()
+cors_origins = [
+    origin.strip().rstrip("/")
+    for origin in os.getenv(
+        "CORS_ORIGINS",
+        "https://aurevion-ai.vercel.app,http://localhost:5173,http://localhost:3000",
+    ).split(",")
+    if origin.strip()
+]
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -16,7 +24,7 @@ app = FastAPI(
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for development
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
