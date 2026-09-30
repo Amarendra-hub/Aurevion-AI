@@ -1,10 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from typing import List, Optional
-import asyncio
 import os
 import warnings
-import requests
 
 # Suppress the deprecation warning
 warnings.filterwarnings("ignore", message=".*google.generativeai.*deprecated.*", category=FutureWarning)
@@ -90,56 +88,6 @@ class ContentRequest(BaseModel):
 class ContentResponse(BaseModel):
     content: List[dict]
 
-def normalize_n8n_content(response_data):
-    """Convert common n8n agent response shapes to the frontend content contract."""
-    if isinstance(response_data, list) and response_data:
-        response_data = response_data[0]
-
-    if isinstance(response_data, dict):
-        for key in ("content", "output", "text", "response"):
-            if key in response_data:
-                response_data = response_data[key]
-                break
-
-    if isinstance(response_data, list):
-        return [
-            item if isinstance(item, dict) and "text" in item else {"text": str(item)}
-            for item in response_data
-        ]
-    if isinstance(response_data, dict):
-        return [{"text": str(response_data.get("text", response_data))}]
-    if isinstance(response_data, str) and response_data.strip():
-        return [{"text": response_data.strip()}]
-
-    raise ValueError("n8n returned an empty or unsupported response")
-
-async def call_n8n_agent(request: ContentRequest):
-    webhook_url = os.getenv("N8N_WEBHOOK_URL")
-    if not webhook_url:
-        return None
-
-    content_type_prompts = {
-        "product_description": "Create a compelling 2-3 sentence product description",
-        "tagline": "Create a catchy and memorable brand tagline (5-10 words)",
-        "social_media": "Create an engaging social media caption (50-100 characters)",
-        "email_subject": "Create 5 compelling email subject lines",
-        "ad_copy": "Create an engaging ad copy (2-3 sentences)",
-    }
-    task = content_type_prompts.get(request.content_type, "Generate marketing content")
-    context = request.context or "General business context"
-    payload = {
-        "chatInput": f"{task} for {request.brand_name}. Context: {context}",
-        "content_type": request.content_type,
-        "brand_name": request.brand_name,
-        "context": request.context,
-    }
-
-    response = await asyncio.to_thread(
-        requests.post, webhook_url, json=payload, timeout=120
-    )
-    response.raise_for_status()
-    return normalize_n8n_content(response.json())
-
 # Brand Name Generation
 @router.post("/brand-names", response_model=BrandNameResponse)
 async def generate_brand_names(request: BrandNameRequest):
@@ -224,13 +172,9 @@ async def generate_logo(request: LogoRequest):
 # Content Generation
 @router.post("/content", response_model=ContentResponse)
 async def generate_content(request: ContentRequest):
-    """Generate marketing content using n8n when configured, otherwise Gemini."""
+    """Generate marketing content using Google Gemini."""
     try:
         print(f"Content request: {request.dict()}")  # Debug logging
-        n8n_content = await call_n8n_agent(request)
-        if n8n_content is not None:
-            return ContentResponse(content=n8n_content)
-
         content_type_prompts = {
             "product_description": "Create a compelling 2-3 sentence product description",
             "tagline": "Create a catchy and memorable brand tagline (5-10 words)",

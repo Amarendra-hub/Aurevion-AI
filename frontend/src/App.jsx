@@ -12,6 +12,7 @@ import SentimentAnalysis from './pages/SentimentAnalysis'
 import Settings from './pages/Settings'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+import ChatWidget from './components/ChatWidget'
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider } from './contexts/AuthContext'
 
@@ -38,6 +39,7 @@ function App() {
             <Route path="/dashboard/sentiment" element={<ProtectedRoute><SentimentAnalysis /></ProtectedRoute>} />
             <Route path="/dashboard/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           </Routes>
+          <ChatWidget />
           <Footer />
         </div>
       </AuthProvider>

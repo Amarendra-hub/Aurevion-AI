@@ -21,6 +21,7 @@ const getApiBaseUrl = () => {
 }
 
 const API_BASE_URL = getApiBaseUrl()
+const N8N_CHAT_URL = import.meta.env.VITE_N8N_CHAT_URL
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -87,15 +88,110 @@ export const generateLogo = async ({ brandName, style, colorPreference }) => {
   return response.data
 }
 
-// Content Generation
-export const generateContent = async ({ contentType, brandName, context }) => {
-  const response = await apiClient.post('/generate/content', {
-    content_type: contentType,
-    brand_name: brandName,
-    context,
-  })
-  return response.data
+const extractAgentReply = (responseData) => {
+  let value = Array.isArray(responseData) ? responseData[0] : responseData
+
+  for (let depth = 0; depth < 4; depth += 1) {
+    if (typeof value === 'string' && value.trim()) return value.trim()
+    if (!value || typeof value !== 'object') break
+
+    const reply = value.reply ?? value.output ?? value.text ?? value.response ?? value.content
+    if (reply !== undefined) {
+      value = Array.isArray(reply) ? reply[0] : reply
+      continue
+    }
+    if (value.data !== undefined) {
+      value = value.data
+      continue
+    }
+    break
+  }
+
+  throw new Error('n8n returned an empty or unsupported response')
 }
+
+const postToN8nAgent = async ({ message, sessionId, extraPayload = {} }) => {
+  if (!N8N_CHAT_URL) {
+    throw new Error('Set VITE_N8N_CHAT_URL in frontend/.env.local and restart the frontend.')
+  }
+
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 120000)
+  let response
+
+  try {
+    response = await fetch(N8N_CHAT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'sendMessage',
+        chatInput: message,
+        sessionId,
+        metadata: {},
+        ...extraPayload,
+      }),
+      signal: controller.signal,
+    })
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error('The n8n agent took too long to respond.')
+    }
+    throw new Error('Could not reach n8n. Check the test listener, URL, and CORS settings.')
+  } finally {
+    clearTimeout(timeoutId)
+  }
+
+  const responseText = await response.text()
+  let responseData = responseText
+  try {
+    responseData = responseText ? JSON.parse(responseText) : null
+  } catch {
+    // Some Chat Trigger workflows return plain text.
+  }
+
+  if (!response.ok) {
+    const detail = responseData?.message || responseData?.error || responseData?.detail
+    throw new Error(detail || `n8n returned HTTP ${response.status}`)
+  }
+
+  return extractAgentReply(responseData)
+}
+
+const createSessionId = () =>
+  globalThis.crypto?.randomUUID?.() || `session-${Date.now()}-${Math.random().toString(36).slice(2)}`
+
+// Generate content directly through the n8n Chat Trigger when configured.
+export const generateContent = async ({ contentType, brandName, context }) => {
+  if (!N8N_CHAT_URL) {
+    const response = await apiClient.post('/generate/content', {
+      content_type: contentType,
+      brand_name: brandName,
+      context,
+    })
+    return response.data
+  }
+
+  const tasks = {
+    product_description: 'Create a compelling 2-3 sentence product description',
+    tagline: 'Create a catchy and memorable brand tagline (5-10 words)',
+    social_media: 'Create an engaging social media caption (50-100 characters)',
+    email_subject: 'Create 5 compelling email subject lines',
+    ad_copy: 'Create an engaging ad copy (2-3 sentences)',
+  }
+  const task = tasks[contentType] || 'Generate marketing content'
+  const reply = await postToN8nAgent({
+    message: `${task} for ${brandName}. Context: ${context || 'General business context'}`,
+    sessionId: createSessionId(),
+    extraPayload: { content_type: contentType, brand_name: brandName, context },
+  })
+  return { content: [{ text: reply }] }
+}
+
+// Chat directly with the configured n8n agent from the browser.
+export const sendAgentMessage = async ({ message, sessionId }) => ({
+  reply: await postToN8nAgent({ message, sessionId }),
+  session_id: sessionId,
+})
 
 // Sentiment Analysis
 export const analyzeSentiment = async (text) => {
