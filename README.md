@@ -275,6 +275,7 @@ VITE_API_URL=http://localhost:8000/api
 ```
 # API Keys
 GEMINI_API_KEY=your_key_here
+N8N_WEBHOOK_URL=https://your-n8n-instance/webhook/your-production-webhook-id
 HUGGINGFACE_API_KEY=your_key_here
 STABLE_DIFFUSION_API_KEY=your_key_here
 
@@ -289,6 +290,8 @@ DEBUG=True
 # CORS
 CORS_ORIGINS=["http://localhost:3000", "http://localhost:5173"]
 ```
+
+When `N8N_WEBHOOK_URL` is set, the Content Generator sends its request to that n8n webhook instead of Gemini. Configure the n8n workflow to accept JSON with `chatInput`, `content_type`, `brand_name`, and `context`, then respond with JSON containing an `output`, `text`, `response`, or `content` value. In Docker Compose, set `N8N_WEBHOOK_URL` in the project `.env` file; for a deployed backend, set it as a backend environment variable. Keep this URL out of frontend environment variables.
 
 ## Testing
 

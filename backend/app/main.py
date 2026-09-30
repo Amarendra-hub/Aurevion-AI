@@ -36,7 +36,13 @@ from app.routers import generate, analyze, auth
 # Startup event to initialize Gemini model
 @app.on_event("startup")
 async def startup_event():
-    """Initialize Gemini model on startup"""
+    """Initialize Gemini unless content generation is handled by n8n."""
+    if os.getenv("N8N_WEBHOOK_URL"):
+        print("[Startup] n8n webhook configured; skipping Gemini initialization")
+        return
+    if not os.getenv("GEMINI_API_KEY"):
+        print("[Startup] GEMINI_API_KEY is not configured; Gemini features are unavailable")
+        return
     print("[Startup] Initializing Gemini model...")
     generate.discover_gemini_model()
     print("[Startup] Gemini model initialized successfully")

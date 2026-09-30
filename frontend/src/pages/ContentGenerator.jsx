@@ -46,7 +46,7 @@ export default function ContentGenerator() {
             <h1 className="text-4xl font-bold">Content Generator</h1>
           </div>
           <p className="text-slate-400 text-lg">
-            Generate compelling marketing content powered by Google Gemini
+            Generate compelling marketing content with your AI agent
           </p>
         </motion.div>
 

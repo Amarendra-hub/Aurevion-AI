@@ -11,12 +11,13 @@ export default function Navbar() {
   const navigate = useNavigate()
   const { isAuthenticated, user, logout } = useAuth()
 
-  const isPublic = location.pathname === '/' || location.pathname === '/about' || location.pathname === '/contact'
+  const isPublic = location.pathname === '/' || location.pathname === '/about' || location.pathname === '/contact' || location.pathname === '/content'
 
   const publicLinks = [
     { name: 'Home', href: '/' },
     { name: 'About', href: '/about' },
     { name: 'Contact', href: '/contact' },
+    { name: 'Content', href: '/content' },
   ]
 
   const dashboardLinks = [

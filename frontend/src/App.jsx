@@ -26,6 +26,7 @@ function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/content" element={<ContentGenerator />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
 
@@ -33,7 +34,7 @@ function App() {
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/dashboard/brand-name" element={<ProtectedRoute><BrandNameGenerator /></ProtectedRoute>} />
             <Route path="/dashboard/logo" element={<ProtectedRoute><LogoGenerator /></ProtectedRoute>} />
-            <Route path="/dashboard/content" element={<ProtectedRoute><ContentGenerator /></ProtectedRoute>} />
+            <Route path="/dashboard/content" element={<ContentGenerator />} />
             <Route path="/dashboard/sentiment" element={<ProtectedRoute><SentimentAnalysis /></ProtectedRoute>} />
             <Route path="/dashboard/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           </Routes>
